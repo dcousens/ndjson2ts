@@ -51,7 +51,6 @@ function sum (a, b) {
 function print (type, indent = '') {
   if (typeof type !== 'object') return type
   if (type.__null) return 'null'
-  if (type.__maybe) return `maybe ${print(type.type, indent)}`
   if (type.__array) return `${print(type.type, indent)}[]`
   if (type.__sum) return type.types.map(x => print(x, indent)).join(' | ')
   if (type.__object) {
@@ -59,7 +58,7 @@ function print (type, indent = '') {
     for (const key in type) {
       if (key === '__object') continue
 
-      const fkey = /[\-]/.test(key) ? `"${key}"` : key
+      const fkey = /[^A-Za-z0-9_]/.test(key) ? `"${key}"` : key
       const ftype = type[key]
 
       if (ftype.__maybe) {
@@ -71,19 +70,21 @@ function print (type, indent = '') {
 
     return output + `\n${indent}}`
   }
+
+  throw new TypeError(`Unexpected type ${type}`)
 }
 
-function get (json) {
+function typeid (json) {
   if (typeof json === 'object') {
     if (json === null) return NULL
     if (Array.isArray(json)) {
-      const type = json.map(x => get(x)).reduce((ac, x) => sum(ac, x))
+      const type = json.map(x => typeid(x)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
     }
 
     const type = { __object: true }
     for (const key in json) {
-      type[key] = get(json[key])
+      type[key] = typeid(json[key])
     }
 
     return type
@@ -98,7 +99,7 @@ async function main () {
 
   for await (const line of rl) {
     const json = JSON.parse(line)
-    const ltype = get(json)
+    const ltype = typeid(json)
 
     type = sum(type, ltype)
   }
