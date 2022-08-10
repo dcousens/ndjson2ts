@@ -13,7 +13,7 @@ type T = {
   }
 }
 
-$ ndjson <<NDJSON
+$ ndjson2ts <<NDJSON
 {"a":2022,"b":"hello","c":{"d":null}}
 {"a":2023,"b":"world"}
 {"a":2024}
