@@ -22,4 +22,11 @@ for (const f of fixtures) {
     t = sum(t, gettype(ft))
   }
   eq(print(t), f.expected)
+
+  // switched
+  t = undefined
+  for (const ft of f.actual) {
+    t = sum(gettype(ft), t)
+  }
+  eq(print(t), f.expected)
 }

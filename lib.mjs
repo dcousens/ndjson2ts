@@ -18,19 +18,20 @@ export function sum (a, b) {
   if (a === undefined) return b
   if (b === undefined) return a
   if (a.__sum) return flatten(a.types, b)
-  if (b.__sum) throw new Error('Unexpected')
+  if (b.__sum) return flatten(b.types, a)
   if (a.__object && b.__object) {
     const type = { __object: true }
-    for (const key in a) {
-      if (key in b) {
-        type[key] = sum(a[key], b[key])
+    const keys = [...Object.keys(a), ...Object.keys(b)].sort()
+    for (const key of keys) {
+      if (key in a) {
+        if (key in b) {
+          type[key] = sum(a[key], b[key])
+        } else {
+          type[key] = maybe(a[key])
+        }
       } else {
-        type[key] = maybe(a[key])
+        type[key] = maybe(b[key])
       }
-    }
-    for (const key in b) {
-      if (key in a) continue
-      type[key] = maybe(b[key])
     }
     return type
   }
@@ -81,7 +82,14 @@ export function print (type, indent = '') {
     if (type.empty) return `unknown[]`
     return `${print(type.type, indent)}[]`
   }
-  if (type.__sum) return type.types.map(x => print(x, indent)).join(' | ')
+
+  if (type.__sum) {
+    return type.types
+      .map(x => print(x, indent))
+      .sort()
+      .join(' | ')
+  }
+
   if (type.__object) {
     let output = `{`
     for (const key in type) {

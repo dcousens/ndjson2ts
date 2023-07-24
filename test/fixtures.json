@@ -39,7 +39,7 @@
       { "a": { "b": true } },
       []
     ],
-    "expected": "{ a: { b: boolean } } | unknown[]"
+    "expected": "unknown[] | { a: { b: boolean } }"
   },
   {
     "actual": [
@@ -53,7 +53,7 @@
       { "a": { "b": true }, "c": [1] },
       "d"
     ],
-    "expected": "{ a: { b: boolean } c: number[] } | string"
+    "expected": "string | { a: { b: boolean } c: number[] }"
   },
   {
     "actual": [
@@ -68,7 +68,7 @@
       { "a": { "b": true } },
       "string"
     ],
-    "expected": "{ a: { b: boolean } } | string"
+    "expected": "string | { a: { b: boolean } }"
   },
   {
     "actual": [
@@ -76,7 +76,7 @@
       "string",
       { "a": { "b": true } }
     ],
-    "expected": "{ a: { b: boolean } } | string"
+    "expected": "string | { a: { b: boolean } }"
   },
   {
     "actual": [
