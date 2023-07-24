@@ -1,5 +1,3 @@
-const NULL = { __null: true }
-
 function maybe (type) {
   if (type.__maybe) return type
   return { __maybe: true, type }
@@ -47,7 +45,7 @@ export function sum (a, b) {
 
 export function gettype (json) {
   if (typeof json === 'object') {
-    if (json === null) return NULL
+    if (json === null) return null
     if (Array.isArray(json)) {
       const type = json.map(x => gettype(x)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
@@ -66,7 +64,7 @@ export function gettype (json) {
 
 export function print (type, indent = '') {
   if (typeof type !== 'object') return type
-  if (type.__null) return 'null'
+  if (type === null) return 'null'
   if (type.__array) return `${print(type.type, indent)}[]`
   if (type.__sum) return type.types.map(x => print(x, indent)).join(' | ')
   if (type.__object) {
