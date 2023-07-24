@@ -21,6 +21,5 @@ for (const f of fixtures) {
   for (const ft of f.actual) {
     t = sum(t, gettype(ft))
   }
-
   eq(print(t), f.expected)
 }

@@ -61,5 +61,29 @@
       { "e": "f" }
     ],
     "expected": "{ a?: { b: boolean } c?: number[] d?: unknown[] e?: string }"
+  },
+  {
+    "actual": [
+      { "a": { "b": true } },
+      { "a": { "b": true } },
+      "string"
+    ],
+    "expected": "{ a: { b: boolean } } | string"
+  },
+  {
+    "actual": [
+      { "a": { "b": true } },
+      "string",
+      { "a": { "b": true } }
+    ],
+    "expected": "{ a: { b: boolean } } | string"
+  },
+  {
+    "actual": [
+      "string",
+      { "a": { "b": true } },
+      { "a": { "b": true } }
+    ],
+    "expected": "string | { a: { b: boolean } }"
   }
 ]

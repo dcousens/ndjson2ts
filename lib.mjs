@@ -3,13 +3,22 @@ function maybe (type) {
   return { __maybe: true, type }
 }
 
+function flatten (types, x) {
+  return {
+    __sum: true,
+    types: types.map((t) => {
+      const tx = sum(t, x)
+      return tx.__sum ? t : tx
+    })
+  }
+}
+
 export function sum (a, b) {
   if (a === b) return a // shortcut
   if (a === undefined) return b
   if (b === undefined) return a
-  if (a.__sum && b.__sum) return [...a.types, ...b.types].reduce((ac, x) => sum(ac, x))
-  if (a.__sum) return [...a.types, b].reduce((ac, x) => sum(ac, x))
-  if (b.__sum) return [a, ...b.types].reduce((ac, x) => sum(ac, x))
+  if (a.__sum) return flatten(a.types, b)
+  if (b.__sum) throw new Error('Unexpected')
   if (a.__object && b.__object) {
     const type = { __object: true }
     for (const key in a) {
