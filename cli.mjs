@@ -8,16 +8,21 @@ import {
 
 async function main () {
   const rl = readline.createInterface({ input: stdin })
-  let ltype = undefined
+  let ltype = { __never: true }
 
   for await (const line of rl) {
     const json = JSON.parse(line)
     const rtype = gettype(json)
 
-    ltype = sum(ltype, rtype)
+    if (ltype.__never) {
+      ltype = rtype
+    } else {
+      ltype = sum(ltype, rtype)
+    }
   }
 
-  console.log(`type T = ${print(ltype)}`)
+  if (ltype.__never) return process.exit(1)
+  console.log(print(ltype))
 }
 
 main()
