@@ -1,6 +1,3 @@
-import readline from 'node:readline/promises'
-import { stdin } from 'node:process'
-
 const NULL = { __null: true }
 
 function maybe (type) {
@@ -8,7 +5,7 @@ function maybe (type) {
   return { __maybe: true, type }
 }
 
-function sum (a, b) {
+export function sum (a, b) {
   if (a === b) return a // shortcut
   if (a === undefined) return b
   if (b === undefined) return a
@@ -48,7 +45,26 @@ function sum (a, b) {
   }
 }
 
-function print (type, indent = '') {
+export function gettype (json) {
+  if (typeof json === 'object') {
+    if (json === null) return NULL
+    if (Array.isArray(json)) {
+      const type = json.map(x => gettype(x)).reduce((ac, x) => sum(ac, x))
+      return { __array: true, type }
+    }
+
+    const type = { __object: true }
+    for (const key in json) {
+      type[key] = gettype(json[key])
+    }
+
+    return type
+  }
+
+  return typeof json
+}
+
+export function print (type, indent = '') {
   if (typeof type !== 'object') return type
   if (type.__null) return 'null'
   if (type.__array) return `${print(type.type, indent)}[]`
@@ -73,38 +89,3 @@ function print (type, indent = '') {
 
   throw new TypeError(`Unexpected type ${type}`)
 }
-
-function typeid (json) {
-  if (typeof json === 'object') {
-    if (json === null) return NULL
-    if (Array.isArray(json)) {
-      const type = json.map(x => typeid(x)).reduce((ac, x) => sum(ac, x))
-      return { __array: true, type }
-    }
-
-    const type = { __object: true }
-    for (const key in json) {
-      type[key] = typeid(json[key])
-    }
-
-    return type
-  }
-
-  return typeof json
-}
-
-async function main () {
-  const rl = readline.createInterface({ input: stdin })
-  let type = undefined
-
-  for await (const line of rl) {
-    const json = JSON.parse(line)
-    const ltype = typeid(json)
-
-    type = sum(type, ltype)
-  }
-
-  console.log(`type T = ${print(type)}`)
-}
-
-main()
