@@ -1,0 +1,29 @@
+[
+  {
+    "actual": true,
+    "expected": "boolean"
+  },
+  {
+    "actual": [true],
+    "expected": "boolean[]"
+  },
+  {
+    "actual": [[true]],
+    "expected": "boolean[][]"
+  },
+  {
+    "left": true,
+    "right": 1,
+    "expected": "boolean | number"
+  },
+  {
+    "left": { "a": true },
+    "right": { "b": 1 },
+    "expected": "{ a?: boolean b?: number }"
+  },
+  {
+    "left": { "a": { "b": true } },
+    "right": { "c": 1 },
+    "expected": "{ a?: { b: boolean } c?: number }"
+  }
+]

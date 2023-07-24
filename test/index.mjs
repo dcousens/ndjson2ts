@@ -4,33 +4,24 @@ import {
   print
 } from '../lib.mjs'
 
-function eq (a, e, m = '') {
-  a = JSON.stringify(a)
-  e = JSON.stringify(e)
+import fixtures from './fixtures.json' assert { type: "json" }
+
+function trim (s) {
+  return s.replace(/\n/g, ' ').replace(/\s+/g, ' ')
+}
+
+function eq (a, e) {
+  a = trim(a)
   if (a !== e) throw new Error(`Expected ${e}, got ${a}`)
 }
 
-const fixtures = [
-  {
-    actual: {
-      a: 2022,
-      b: 'hello',
-      c: {
-        d: null
-      }
-    },
-    expected: {
-      __object: true,
-      a: 'number',
-      b: 'string',
-      c: {
-        __object: true,
-        d: null
-      }
-    }
-  },
-]
-
 for (const f of fixtures) {
-  eq(gettype(f.actual), f.expected)
+  console.error(f)
+  if ('left' in f) {
+    eq(print(sum(gettype(f.left), gettype(f.right))), f.expected)
+  }
+
+  if ('actual' in f) {
+    eq(print(gettype(f.actual)), f.expected)
+  }
 }
