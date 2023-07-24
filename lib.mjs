@@ -27,6 +27,8 @@ export function sum (a, b) {
   }
 
   if (a.__array && b.__array) {
+    if (a.empty) return b
+    if (b.empty) return a
     return {
       __array: true,
       type: sum(a.type, b.type)
@@ -47,6 +49,7 @@ export function gettype (json) {
   if (typeof json === 'object') {
     if (json === null) return null
     if (Array.isArray(json)) {
+      if (json.length === 0) return { __array: true, empty: true }
       const type = json.map(x => gettype(x)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
     }
@@ -65,7 +68,10 @@ export function gettype (json) {
 export function print (type, indent = '') {
   if (typeof type !== 'object') return type
   if (type === null) return 'null'
-  if (type.__array) return `${print(type.type, indent)}[]`
+  if (type.__array) {
+    if (type.empty) return `unknown[]`
+    return `${print(type.type, indent)}[]`
+  }
   if (type.__sum) return type.types.map(x => print(x, indent)).join(' | ')
   if (type.__object) {
     let output = `{`

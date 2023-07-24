@@ -25,5 +25,15 @@
     "left": { "a": { "b": true } },
     "right": { "c": 1 },
     "expected": "{ a?: { b: boolean } c?: number }"
+  },
+  {
+    "left": { "a": { "b": true }, "c": [1] },
+    "right": "d",
+    "expected": "{ a: { b: boolean } c: number[] } | string"
+  },
+  {
+    "left": { "a": { "b": true }, "c": [1], "d": [] },
+    "right": { "e": "f" },
+    "expected": "{ a?: { b: boolean } c?: number[] d?: unknown[] e?: string }"
   }
 ]
