@@ -24,8 +24,26 @@
     "expected": "boolean[][]"
   },
   {
-    "actual": [true, 1],
+    "actual": [
+      true,
+      1
+    ],
     "expected": "boolean | number"
+  },
+  {
+    "actual": [
+      [true],
+      [1]
+    ],
+    "expected": "(boolean | number)[]"
+  },
+  {
+    "actual": [
+      [true],
+      [1],
+      [2]
+    ],
+    "expected": "(boolean | number)[]"
   },
   {
     "actual": [

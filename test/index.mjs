@@ -16,7 +16,8 @@ function eq (a, e) {
 }
 
 for (const f of fixtures) {
-  console.error(f)
+  console.error(JSON.stringify(f.actual), `equals '${f.expected}'`)
+
   let t = undefined
   for (const ft of f.actual) {
     t = sum(t, gettype(ft))

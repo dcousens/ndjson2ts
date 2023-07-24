@@ -80,6 +80,7 @@ export function print (type, indent = '') {
   if (type === null) return 'null'
   if (type.__array) {
     if (type.empty) return `unknown[]`
+    if (type.type.__sum) return `(${print(type.type, indent)})[]`
     return `${print(type.type, indent)}[]`
   }
 
@@ -98,7 +99,7 @@ export function print (type, indent = '') {
       const fkey = /[^A-Za-z0-9_]/.test(key) ? `"${key}"` : key
       const ftype = type[key]
 
-      if (ftype.__maybe) {
+      if (ftype?.__maybe) {
         output += `\n${indent + '  '}${fkey}?: ${print(ftype.type, indent + '  ')}`
       } else {
         output += `\n${indent + '  '}${fkey}: ${print(ftype, indent + '  ')}`
