@@ -17,11 +17,10 @@ function eq (a, e) {
 
 for (const f of fixtures) {
   console.error(f)
-  if ('left' in f) {
-    eq(print(sum(gettype(f.left), gettype(f.right))), f.expected)
+  let t = undefined
+  for (const ft of f.actual) {
+    t = sum(t, gettype(ft))
   }
 
-  if ('actual' in f) {
-    eq(print(gettype(f.actual)), f.expected)
-  }
+  eq(print(t), f.expected)
 }

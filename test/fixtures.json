@@ -1,48 +1,65 @@
 [
   {
-    "actual": true,
+    "actual": [
+      true
+    ],
     "expected": "boolean"
   },
   {
-    "actual": [],
+    "actual": [
+      []
+    ],
     "expected": "unknown[]"
   },
   {
-    "actual": [true],
+    "actual": [
+      [true]
+    ],
     "expected": "boolean[]"
   },
   {
-    "actual": [[true]],
+    "actual": [
+      [[true]]
+    ],
     "expected": "boolean[][]"
   },
   {
-    "left": true,
-    "right": 1,
+    "actual": [true, 1],
     "expected": "boolean | number"
   },
   {
-    "left": { "a": true },
-    "right": { "b": 1 },
+    "actual": [
+      { "a": true },
+      { "b": 1 }
+    ],
     "expected": "{ a?: boolean b?: number }"
   },
   {
-    "left": { "a": { "b": true } },
-    "right": [],
+    "actual": [
+      { "a": { "b": true } },
+      []
+    ],
     "expected": "{ a: { b: boolean } } | unknown[]"
   },
   {
-    "left": { "a": { "b": true } },
-    "right": { "c": 1 },
+    "actual": [
+      { "a": { "b": true } },
+      { "c": 1 }
+    ],
     "expected": "{ a?: { b: boolean } c?: number }"
   },
   {
-    "left": { "a": { "b": true }, "c": [1] },
-    "right": "d",
+    "actual": [
+      { "a": { "b": true }, "c": [1] },
+      "d"
+    ],
     "expected": "{ a: { b: boolean } c: number[] } | string"
   },
   {
-    "left": { "a": { "b": true }, "c": [1], "d": [] },
-    "right": { "e": "f" },
+    "actual": [
+      { "a": { "b": true }, "c": [1], "d": [] },
+      { "e": "f" }
+    ],
     "expected": "{ a?: { b: boolean } c?: number[] d?: unknown[] e?: string }"
   }
 ]
