@@ -2,7 +2,7 @@ import {
   gettype,
   sum,
   print
-} from './lib.mjs'
+} from '../lib.mjs'
 
 function eq (a, e, m = '') {
   a = JSON.stringify(a)
@@ -30,7 +30,6 @@ const fixtures = [
     }
   },
 ]
-
 
 for (const f of fixtures) {
   eq(gettype(f.actual), f.expected)
