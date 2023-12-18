@@ -15,13 +15,16 @@ function flatten (types, x) {
 
 export function sum (a, b) {
   if (a.__scalar && b.__scalar) {
-    if (a.__scalar.type === b.__scalar.type) {
+    if (a.type === b.type) {
       return {
         __scalar: true,
         type: a.type,
         count: a.count + b.count
       }
     }
+
+    if (a.type === 'unknown') return { ...b, count: a.count + b.count }
+    if (b.type === 'unknown') return { ...a, count: a.count + b.count }
   }
 
   if (a.__sum) return flatten(a.types, b)
@@ -44,8 +47,6 @@ export function sum (a, b) {
   }
 
   if (a.__array && b.__array) {
-    if (a.empty) return b
-    if (b.empty) return a
     return {
       __array: true,
       type: sum(a.type, b.type)
@@ -62,11 +63,13 @@ export function sum (a, b) {
   }
 }
 
+const UNKNOWN = { __scalar: true, type: 'unknown', count: 1 }
+
 export function gettype (json) {
   if (typeof json === 'object') {
     if (json === null) return { __scalar: true, type: null, count: 1 }
     if (Array.isArray(json)) {
-      if (json.length === 0) return { __array: true, empty: true }
+      if (json.length === 0) return { __array: true, type: UNKNOWN }
       const type = json.map(x => gettype(x)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
     }
