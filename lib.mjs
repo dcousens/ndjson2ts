@@ -14,11 +14,13 @@ function flatten (types, x) {
 }
 
 export function sum (a, b) {
-  if (a === b) return a // shortcut
-  if (a === null) return a
-  if (b === null) return b
   if (a === undefined) return b
   if (b === undefined) return a
+  if (a.__scalar && b.__scalar) {
+    if (a.__scalar.type === b.__scalar.type) {
+      return { __scalar: true, type: a.type, count: a.count + b.count }
+    }
+  }
   if (a.__sum) return flatten(a.types, b)
   if (b.__sum) return flatten(b.types, a)
   if (a.__object && b.__object) {
@@ -59,7 +61,7 @@ export function sum (a, b) {
 
 export function gettype (json) {
   if (typeof json === 'object') {
-    if (json === null) return null
+    if (json === null) return { __scalar: true, type: null, count: 1 }
     if (Array.isArray(json)) {
       if (json.length === 0) return { __array: true, empty: true }
       const type = json.map(x => gettype(x)).reduce((ac, x) => sum(ac, x))
@@ -74,12 +76,11 @@ export function gettype (json) {
     return type
   }
 
-  return typeof json
+  return { __scalar: true, type: typeof json, count: 1 }
 }
 
 export function print (type, indent = '') {
-  if (typeof type !== 'object') return type
-  if (type === null) return 'null'
+  if (type.__scalar) return `${type.type} /* used ${type.count} times */`
   if (type.__array) {
     if (type.empty) return `unknown[]`
     if (type.type.__sum) return `(${print(type.type, indent)})[]`
@@ -111,5 +112,5 @@ export function print (type, indent = '') {
     return output + `\n${indent}}`
   }
 
-  throw new TypeError(`Unexpected type ${type}`)
+  throw new TypeError(`Unexpected type ${JSON.stringify(type)}`)
 }
