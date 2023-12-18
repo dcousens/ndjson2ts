@@ -15,6 +15,8 @@ function flatten (types, x) {
 
 export function sum (a, b) {
   if (a === b) return a // shortcut
+  if (a === null) return a
+  if (b === null) return b
   if (a === undefined) return b
   if (b === undefined) return a
   if (a.__sum) return flatten(a.types, b)
