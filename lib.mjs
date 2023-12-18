@@ -14,27 +14,30 @@ function flatten (types, x) {
 }
 
 export function sum (a, b) {
-  if (a === undefined) return b
-  if (b === undefined) return a
   if (a.__scalar && b.__scalar) {
     if (a.__scalar.type === b.__scalar.type) {
-      return { __scalar: true, type: a.type, count: a.count + b.count }
+      return {
+        __scalar: true,
+        type: a.type,
+        count: a.count + b.count
+      }
     }
   }
+
   if (a.__sum) return flatten(a.types, b)
   if (b.__sum) return flatten(b.types, a)
   if (a.__object && b.__object) {
-    const type = { __object: true }
-    const keys = [...Object.keys(a), ...Object.keys(b)].sort()
+    const type = { __object: true, types: {} }
+    const keys = [...Object.keys(a.types), ...Object.keys(b.types)].sort()
     for (const key of keys) {
-      if (key in a) {
-        if (key in b) {
-          type[key] = sum(a[key], b[key])
+      if (key in a.types) {
+        if (key in b.types) {
+          type.types[key] = sum(a.types[key], b.types[key])
         } else {
-          type[key] = maybe(a[key])
+          type.types[key] = maybe(a.types[key])
         }
       } else {
-        type[key] = maybe(b[key])
+        type.types[key] = maybe(b.types[key])
       }
     }
     return type
@@ -68,19 +71,22 @@ export function gettype (json) {
       return { __array: true, type }
     }
 
-    const type = { __object: true }
+    const type = { __object: true, types: {} }
     for (const key in json) {
-      type[key] = gettype(json[key])
+      type.types[key] = gettype(json[key])
     }
-
     return type
   }
 
   return { __scalar: true, type: typeof json, count: 1 }
 }
 
+function comment (type) {
+  return `/* used ${type.count} times */`
+}
+
 export function print (type, indent = '') {
-  if (type.__scalar) return `${type.type} /* used ${type.count} times */`
+  if (type.__scalar) return `${type.type} ${comment(type)}`
   if (type.__array) {
     if (type.empty) return `unknown[]`
     if (type.type.__sum) return `(${print(type.type, indent)})[]`
@@ -96,11 +102,9 @@ export function print (type, indent = '') {
 
   if (type.__object) {
     let output = `{`
-    for (const key in type) {
-      if (key === '__object') continue
-
+    for (const key in type.types) {
       const fkey = /[^A-Za-z0-9_]/.test(key) ? `"${key}"` : key
-      const ftype = type[key]
+      const ftype = type.types[key]
 
       if (ftype?.__maybe) {
         output += `\n${indent + '  '}${fkey}?: ${print(ftype.type, indent + '  ')}`
@@ -108,7 +112,6 @@ export function print (type, indent = '') {
         output += `\n${indent + '  '}${fkey}: ${print(ftype, indent + '  ')}`
       }
     }
-
     return output + `\n${indent}}`
   }
 
