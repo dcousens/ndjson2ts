@@ -15,6 +15,8 @@ function flatten (types, x) {
 
 export function sum (a, b) {
   if (a.__scalar && b.__scalar) {
+    if (a === 'unknown') return { ...b, count: (a?.count ?? 1) + (b?.count ?? 1) }
+    if (b === 'unknown') return { ...a, count: (a?.count ?? 1) + (b?.count ?? 1) }
     if (a.type === b.type) {
       return {
         __scalar: true,
@@ -22,11 +24,10 @@ export function sum (a, b) {
         count: a.count + b.count
       }
     }
-
-    if (a.type === 'unknown') return { ...b, count: a.count + b.count }
-    if (b.type === 'unknown') return { ...a, count: a.count + b.count }
   }
 
+  if (a.type === 'unknown') return b
+  if (b.type === 'unknown') return a
   if (a.__sum) return flatten(a.types, b)
   if (b.__sum) return flatten(b.types, a)
   if (a.__object && b.__object) {
