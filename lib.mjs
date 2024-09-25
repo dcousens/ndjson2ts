@@ -3,14 +3,15 @@ function maybe (type) {
   return { __maybe: true, type }
 }
 
-function flatten (types, x) {
-  return {
-    __sum: true,
-    types: types.map((t) => {
-      const tx = sum(t, x)
-      return tx.__sum ? t : tx
-    })
+function foldl (a, b) {
+  if (!a.__sum) throw new TypeError(`Unexpected lvalue type`)
+  if (b.__sum) throw new TypeError(`Unexpected rvalue type`)
+  for (const x of a.types) {
+    const xb = sum(x, b)
+    if (xb.__sum) continue // not compatible
+    return { __sum: true, types: [...a.types.filter(y => y !== x), xb] }
   }
+  return { __sum: true, types: [...a.types, b] }
 }
 
 export function sum (a, b) {
@@ -28,23 +29,24 @@ export function sum (a, b) {
 
   if (a.type === 'unknown') return b
   if (b.type === 'unknown') return a
-  if (a.__sum) return flatten(a.types, b)
-  if (b.__sum) return flatten(b.types, a)
+  if (a.__sum) return foldl(a, b)
   if (a.__object && b.__object) {
-    const type = { __object: true, types: {} }
-    const keys = [...Object.keys(a.types), ...Object.keys(b.types)].sort()
-    for (const key of keys) {
-      if (key in a.types) {
-        if (key in b.types) {
-          type.types[key] = sum(a.types[key], b.types[key])
+    if (a.discriminant === b.discriminant) {
+      const type = { ...a, types: {} }
+      const keys = [...Object.keys(a.types), ...Object.keys(b.types)].sort()
+      for (const key of keys) {
+        if (key in a.types) {
+          if (key in b.types) {
+            type.types[key] = sum(a.types[key], b.types[key])
+          } else {
+            type.types[key] = maybe(a.types[key])
+          }
         } else {
-          type.types[key] = maybe(a.types[key])
+          type.types[key] = maybe(b.types[key])
         }
-      } else {
-        type.types[key] = maybe(b.types[key])
       }
+      return type
     }
-    return type
   }
 
   if (a.__array && b.__array) {
@@ -57,6 +59,14 @@ export function sum (a, b) {
   if (a.__maybe && b.__maybe) return maybe(sum(a.type, b.type))
   if (a.__maybe) return maybe(sum(a.type, b))
   if (b.__maybe) return maybe(sum(a, b.type))
+  if (a.__literal && b.__literal) {
+    if (a.type === b.type) {
+      return {
+        ...a,
+        count: (a?.count ?? 1) + (b?.count ?? 1)
+      }
+    }
+  }
 
   return {
     __sum: true,
@@ -66,22 +76,31 @@ export function sum (a, b) {
 
 const UNKNOWN = { __scalar: true, type: 'unknown', count: 1 }
 
-export function gettype (json) {
+export function gettype (json, path = '', literals = []) {
   if (typeof json === 'object') {
     if (json === null) return { __scalar: true, type: null, count: 1 }
     if (Array.isArray(json)) {
       if (json.length === 0) return { __array: true, type: UNKNOWN }
-      const type = json.map(x => gettype(x)).reduce((ac, x) => sum(ac, x))
+      const type = json.map(x => gettype(x, `${path}.[]`, literals)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
     }
 
-    const type = { __object: true, types: {} }
+    const type = {
+      __object: true,
+      discriminant: undefined,
+      types: {}
+    }
     for (const key in json) {
-      type.types[key] = gettype(json[key])
+      const ft = gettype(json[key], `${path}.${key}`, literals)
+      type.types[key] = ft
+      if (ft.__literal) {
+        type.discriminant = ft.type
+      }
     }
     return type
   }
 
+  if (literals.includes(path)) return { __literal: true, type: json, count: 1 }
   return { __scalar: true, type: typeof json, count: 1 }
 }
 
@@ -90,6 +109,7 @@ function comment (type) {
 }
 
 export function print (type, indent = '') {
+  if (type.__literal) return `${JSON.stringify(type.type)} ${comment(type)}`
   if (type.__scalar) return `${type.type} ${comment(type)}`
   if (type.__array) {
     if (type.empty) return `unknown[]`
@@ -109,7 +129,6 @@ export function print (type, indent = '') {
     for (const key in type.types) {
       const fkey = /[^A-Za-z0-9_]/.test(key) ? `"${key}"` : key
       const ftype = type.types[key]
-
       if (ftype?.__maybe) {
         output += `\n${indent + '  '}${fkey}?: ${print(ftype.type, indent + '  ')}`
       } else {

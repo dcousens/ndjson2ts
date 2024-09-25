@@ -10,10 +10,12 @@ async function main () {
   const rl = readline.createInterface({ input: stdin })
   let ltype = { __never: true }
 
+  const literals = process.argv.slice(2)
+
   for await (const line of rl) {
     if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
-    const rtype = gettype(json)
+    const rtype = gettype(json, '', literals)
 
     if (ltype.__never) {
       ltype = rtype
