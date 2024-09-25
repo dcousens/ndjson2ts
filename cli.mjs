@@ -11,6 +11,7 @@ async function main () {
   let ltype = { __never: true }
 
   for await (const line of rl) {
+    if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
     const rtype = gettype(json)
 
