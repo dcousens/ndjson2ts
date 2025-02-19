@@ -10,12 +10,23 @@ async function main () {
   const rl = readline.createInterface({ input: stdin })
   let ltype = { __never: true }
 
-  const literals = process.argv.slice(2)
+  const discriminantPaths = []
+  const literalPaths = []
+
+  const args = process.argv.slice(2)
+  while (args.length) {
+    const a = args.shift()
+    if (a === '--discriminant') discriminantPaths.push(args.shift())
+    if (a === '--literal') literalPaths.push(args.shift())
+  }
+
+  // any discriminants are literals too
+  literalPaths.push(...discriminantPaths)
 
   for await (const line of rl) {
     if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
-    const rtype = gettype(json, '', literals)
+    const rtype = gettype(json, '', literalPaths, discriminantPaths)
 
     if (ltype.__never) {
       ltype = rtype

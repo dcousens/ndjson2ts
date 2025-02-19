@@ -76,12 +76,12 @@ export function sum (a, b) {
 
 const UNKNOWN = { __scalar: true, type: 'unknown', count: 1 }
 
-export function gettype (json, path = '', literals = []) {
+export function gettype (json, path = '', literalPaths = [], discriminantPaths = []) {
   if (typeof json === 'object') {
     if (json === null) return { __scalar: true, type: null, count: 1 }
     if (Array.isArray(json)) {
       if (json.length === 0) return { __array: true, type: UNKNOWN }
-      const type = json.map(x => gettype(x, `${path}.[]`, literals)).reduce((ac, x) => sum(ac, x))
+      const type = json.map(x => gettype(x, `${path}.[]`, literalPaths, discriminantPaths)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
     }
 
@@ -91,16 +91,16 @@ export function gettype (json, path = '', literals = []) {
       types: {}
     }
     for (const key in json) {
-      const ft = gettype(json[key], `${path}.${key}`, literals)
+      const ft = gettype(json[key], `${path}.${key}`, literalPaths, discriminantPaths)
       type.types[key] = ft
-      if (ft.__literal) {
+      if (ft.__literal && discriminantPaths.includes(`${path}.${key}`)) {
         type.discriminant = ft.type
       }
     }
     return type
   }
 
-  if (literals.includes(path)) return { __literal: true, type: json, count: 1 }
+  if (literalPaths.includes(path)) return { __literal: true, type: json, count: 1 }
   return { __scalar: true, type: typeof json, count: 1 }
 }
 
