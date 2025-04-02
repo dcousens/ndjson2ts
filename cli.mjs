@@ -12,12 +12,14 @@ async function main () {
 
   const discriminantPaths = []
   const literalPaths = []
+  const recordPaths = []
 
   const args = process.argv.slice(2)
   while (args.length) {
     const a = args.shift()
     if (a === '--discriminant') discriminantPaths.push(args.shift())
     if (a === '--literal') literalPaths.push(args.shift())
+    if (a === '--record') recordPaths.push(args.shift())
   }
 
   // any discriminants are literals too
@@ -26,7 +28,7 @@ async function main () {
   for await (const line of rl) {
     if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
-    const rtype = gettype(json, '', literalPaths, discriminantPaths)
+    const rtype = gettype(json, '', literalPaths, discriminantPaths, recordPaths)
 
     if (ltype.__never) {
       ltype = rtype

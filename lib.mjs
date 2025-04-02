@@ -4,8 +4,8 @@ function maybe (type) {
 }
 
 function foldl (a, b) {
-  if (!a.__sum) throw new TypeError(`Unexpected lvalue type`)
-  if (b.__sum) throw new TypeError(`Unexpected rvalue type`)
+  if (!a.__sum) throw new TypeError(`Unexpected lvalue type ${JSON.stringify({ a, b })}`)
+  if (b.__sum) return b.types.reduce((xa, xb) => foldl(xa, xb), a)
   for (const x of a.types) {
     const xb = sum(x, b)
     if (xb.__sum) continue // not compatible
@@ -30,6 +30,16 @@ export function sum (a, b) {
   if (a.type === 'unknown') return b
   if (b.type === 'unknown') return a
   if (a.__sum) return foldl(a, b)
+  if (a.__record && b.__record) {
+    return {
+      __record: true,
+      types: {
+        key: sum(a.types.key, b.types.key),
+        value: sum(a.types.value, b.types.value),
+      }
+    }
+  }
+
   if (a.__object && b.__object) {
     if (a.discriminant === b.discriminant) {
       const type = { ...a, types: {} }
@@ -76,13 +86,29 @@ export function sum (a, b) {
 
 const UNKNOWN = { __scalar: true, type: 'unknown', count: 1 }
 
-export function gettype (json, path = '', literalPaths = [], discriminantPaths = []) {
+export function gettype (json, path = '', literalPaths = [], discriminantPaths = [], recordPaths = []) {
   if (typeof json === 'object') {
     if (json === null) return { __scalar: true, type: null, count: 1 }
     if (Array.isArray(json)) {
       if (json.length === 0) return { __array: true, type: UNKNOWN }
-      const type = json.map(x => gettype(x, `${path}.[]`, literalPaths, discriminantPaths)).reduce((ac, x) => sum(ac, x))
+      const type = json.map(x => gettype(x, `${path}.[]`, literalPaths, discriminantPaths, recordPaths)).reduce((ac, x) => sum(ac, x))
       return { __array: true, type }
+    }
+
+    if (recordPaths.includes(path)) {
+      let keyType = { __scalar: true, type: UNKNOWN }
+      let valueType = { __scalar: true, type: UNKNOWN }
+      for (const key in json) {
+        keyType = gettype(key, `${path}.[key]`, literalPaths, discriminantPaths, recordPaths)
+        valueType = gettype(json[key], `${path}[]`, literalPaths, discriminantPaths, recordPaths)
+      }
+      return {
+        __record: true,
+        types: {
+          key: keyType,
+          value: valueType,
+        }
+      }
     }
 
     const type = {
@@ -91,7 +117,7 @@ export function gettype (json, path = '', literalPaths = [], discriminantPaths =
       types: {}
     }
     for (const key in json) {
-      const ft = gettype(json[key], `${path}.${key}`, literalPaths, discriminantPaths)
+      const ft = gettype(json[key], `${path}.${key}`, literalPaths, discriminantPaths, recordPaths)
       type.types[key] = ft
       if (ft.__literal && discriminantPaths.includes(`${path}.${key}`)) {
         type.discriminant = ft.type
@@ -122,6 +148,12 @@ export function print (type, indent = '') {
       .map(x => print(x, indent))
       .sort()
       .join(' | ')
+  }
+
+  if (type.__record) {
+    let output = `{`
+    output += `\n${indent + '  '}[key: ${print(type.types.key)}]: ${print(type.types.value, indent + '  ')}`
+    return output + `\n${indent}}`
   }
 
   if (type.__object) {
