@@ -159,7 +159,7 @@ export function print (type, indent = '') {
   if (type.__object) {
     let output = `{`
     for (const key in type.types) {
-      const fkey = /[^A-Za-z0-9_]/.test(key) ? `"${key}"` : key
+      const fkey = (/[^A-Za-z0-9_]/.test(key) || (/^[0-9]/.test(key) && /[A-Za-z_]/.test(key)) || key === "") ? `"${key}"` : key
       const ftype = type.types[key]
       if (ftype?.__maybe) {
         output += `\n${indent + '  '}${fkey}?: ${print(ftype.type, indent + '  ')}`
