@@ -1,4 +1,4 @@
-[
+export default [
   {
     "actual": [
       true
@@ -103,5 +103,5 @@
       { "a": { "b": true } }
     ],
     "expected": "string | { a: { b: boolean } }"
-  }
+  },
 ]

@@ -152,13 +152,14 @@ export function gettype (
   return { scalar: typeof json, count: 1 } satisfies Type
 }
 
-function comment (type: Type) {
-  return `/* used ${type.count} times */`
+function comment (type: Type, count = false) {
+  if (count) return ` /* used ${type.count} times */`
+  return ``
 }
 
-export function print (type: Type, indent = ''): string {
-  if (type.literal) return `${JSON.stringify(type.literal.value)} ${comment(type)}`
-  if (type.scalar) return `${type.scalar} ${comment(type)}`
+export function print (type: Type, indent = '', count = false): string {
+  if (type.literal) return `${JSON.stringify(type.literal.value)}${comment(type, count)}`
+  if (type.scalar) return `${type.scalar}${comment(type, count)}`
   if (type.array) {
     if (type.array.sum) return `(${print(type.array, indent)})[]`
     return `${print(type.array, indent)}[]`

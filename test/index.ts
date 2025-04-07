@@ -1,16 +1,17 @@
 import {
   gettype,
-  sum,
+  fold,
   print
-} from '../lib.mjs'
+} from '../lib.ts'
 
-import fixtures from './fixtures.json' assert { type: "json" }
+import fixtures from './fixtures.ts'
 
-function trim (s) {
+function trim (s: string) {
   return s.replace(/\n/g, ' ').replace(/\s+/g, ' ')
 }
 
-function eq (a, e) {
+function eq (a: string, e: string) {
+  console.error({ a, e })
   a = trim(a)
   if (a !== e) throw new Error(`Expected ${e}, got ${a}`)
 }
@@ -18,16 +19,16 @@ function eq (a, e) {
 for (const f of fixtures) {
   console.error(JSON.stringify(f.actual), `equals '${f.expected}'`)
 
-  let t = undefined
+  let t = { never: true }
   for (const ft of f.actual) {
-    t = sum(t, gettype(ft))
+    t = fold(t, gettype(ft))
   }
   eq(print(t), f.expected)
 
   // switched
-  t = undefined
+  t = { never: true }
   for (const ft of f.actual) {
-    t = sum(gettype(ft), t)
+    t = fold(gettype(ft), t)
   }
   eq(print(t), f.expected)
 }
