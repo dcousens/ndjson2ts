@@ -11,7 +11,6 @@ function trim (s: string) {
 }
 
 function eq (a: string, e: string) {
-  console.error({ a, e })
   a = trim(a)
   if (a !== e) throw new Error(`Expected ${e}, got ${a}`)
 }

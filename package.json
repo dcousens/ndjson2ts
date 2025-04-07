@@ -1,14 +1,24 @@
 {
   "name": "ndjson2ts",
-  "description": "A small Javascript utility to determine a Typescript type from an ndjson stream",
-  "version": "1.0.0",
   "type": "module",
-  "license": "MIT",
-  "private": true,
-  "author": "Daniel Cousens",
-  "main": "lib.mjs",
+  "version": "1.0.1",
+  "description": "A small Javascript utility to determine a Typescript type from an ndjson stream",
+  "main": "cli.ts",
+  "scripts": {
+    "test": "node test/index.ts"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/dcousens/ndjson2ts.git"
-  }
+  },
+  "bugs": {
+    "url": "https://github.com/dcousens/ndjson2ts/issues"
+  },
+  "homepage": "https://github.com/dcousens/ndjson2ts",
+  "keywords": [
+    "ndjson2ts",
+    "typescript"
+  ],
+  "author": "Daniel Cousens",
+  "license": "MIT"
 }
