@@ -4,6 +4,7 @@
   "version": "1.0.1",
   "description": "A small Javascript utility to determine a Typescript type from an ndjson stream",
   "main": "cli.ts",
+  "packageManager": "pnpm@10.7.1",
   "scripts": {
     "test": "node test/index.ts"
   },
