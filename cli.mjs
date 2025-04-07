@@ -17,9 +17,9 @@ async function main () {
   const args = process.argv.slice(2)
   while (args.length) {
     const a = args.shift()
-    if (a === '--discriminant') discriminantPaths.push(args.shift())
-    if (a === '--literal') literalPaths.push(args.shift())
-    if (a === '--record') recordPaths.push(args.shift())
+    if (a === '--discriminant') discriminantPaths.push(args.shift() ?? '')
+    if (a === '--literal') literalPaths.push(args.shift() ?? '')
+    if (a === '--record') recordPaths.push(args.shift() ?? '')
   }
 
   // any discriminants are literals too
