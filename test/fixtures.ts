@@ -104,4 +104,15 @@ export default [
     ],
     "expected": "string | { a: { b: boolean } }"
   },
+  {
+    "actual": [
+      { "a": { "b": true } },
+      { "a": { "b": 0 } },
+      { "a": { "b": { "c": true } } },
+      { "a": { "b": { "c": 0 } } },
+      { "a": true },
+      { "a": 0 },
+    ],
+    "expected": "{ a: boolean | { b: boolean | number | { c: boolean } | { c: number } } | number }"
+  },
 ]
