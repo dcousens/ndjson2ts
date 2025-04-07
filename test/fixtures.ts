@@ -113,6 +113,6 @@ export default [
       { "a": true },
       { "a": 0 },
     ],
-    "expected": "{ a: boolean | { b: boolean | number | { c: boolean } | { c: number } } | number }"
+    "expected": "{ a: boolean | number | { b: boolean | number | { c: boolean | number } } }"
   },
 ]

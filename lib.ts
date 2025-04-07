@@ -14,15 +14,19 @@ export type Type = {
   count: number
 }
 
-function foldleft (a, b) {
-  if (!a.sum) throw new TypeError(`Unexpected lvalue type ${JSON.stringify({ a, b })}`)
-  if (b.sum) return b.sum.reduce((xa, xb) => foldleft(xa, xb), a)
-  for (const x of a.sum) {
-    const xb = fold(x, b)
-    if (xb.sum) continue // not compatible
-    return { sum: [...a.sum.filter(y => y !== x), xb], count: 1 }
+function foldleft (xs: Type[]): Type {
+  for (const a of xs) {
+    for (const b of xs) {
+      if (a === b) continue
+      const ab = fold(a, b)
+      if (ab.sum) continue // couldnt fold
+      return foldleft([ab, ...xs.filter(x => x !== a && x !== b)])
+    }
   }
-  return { sum: [...a.sum, b], count: 1 }
+  return {
+    sum: xs,
+    count: 1
+  }
 }
 
 export function fold (a: Type, b: Type): Type {
@@ -37,7 +41,9 @@ export function fold (a: Type, b: Type): Type {
     }
   }
 
-  if (a.sum) return foldleft(a, b)
+  if (a.sum && b.sum) return foldleft([...a.sum, ...b.sum])
+  if (a.sum) return foldleft([b, ...a.sum])
+  if (b.sum) return foldleft([a, ...b.sum])
   if (a.record && b.record) {
     return {
       record: {
