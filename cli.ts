@@ -14,6 +14,7 @@ async function main () {
   const discriminantPaths = []
   const literalPaths = []
   const recordPaths = []
+  let count = false
 
   const args = process.argv.slice(2)
   while (args.length) {
@@ -21,6 +22,7 @@ async function main () {
     if (a === '--discriminant') discriminantPaths.push(args.shift() ?? '')
     if (a === '--literal') literalPaths.push(args.shift() ?? '')
     if (a === '--record') recordPaths.push(args.shift() ?? '')
+    if (a === '--count') count = true
   }
 
   // any discriminants are literals too
@@ -34,7 +36,7 @@ async function main () {
   }
 
   if (ltype.never) return process.exit(1)
-  console.log(print(ltype))
+  console.log(print(ltype, '', count))
 }
 
 main()

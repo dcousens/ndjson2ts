@@ -167,20 +167,20 @@ export function print (type: Type, indent = '', count = false): string {
   if (type.literal) return `${JSON.stringify(type.literal.value)}${comment(type, count)}`
   if (type.scalar) return `${type.scalar}${comment(type, count)}`
   if (type.array) {
-    if (type.array.sum) return `(${print(type.array, indent)})[]`
-    return `${print(type.array, indent)}[]`
+    if (type.array.sum) return `(${print(type.array, indent, count)})[]`
+    return `${print(type.array, indent, count)}[]`
   }
 
   if (type.sum) {
     return type.sum
-      .map(x => print(x, indent))
+      .map(x => print(x, indent, count))
       .sort()
       .join(' | ')
   }
 
   if (type.record) {
     let output = `{`
-    output += `\n${indent + '  '}[key: ${print(type.record.key)}]: ${print(type.record.value, indent + '  ')}`
+    output += `\n${indent + '  '}[key: ${print(type.record.key, '', count)}]: ${print(type.record.value, indent + '  ', count)}`
     return output + `\n${indent}}`
   }
 
@@ -189,7 +189,7 @@ export function print (type: Type, indent = '', count = false): string {
     for (const key of Object.keys(type.object).sort()) {
       const fkey = (/[^A-Za-z0-9_]/.test(key) || (/^[0-9]/.test(key) && /[A-Za-z_]/.test(key)) || key === "") ? `"${key}"` : key
       const ftype = type.object[key]
-      output += `\n${indent + '  '}${fkey}${(key in (type.maybe ?? {})) ? '?' : ''}: ${print(ftype, indent + '  ')}`
+      output += `\n${indent + '  '}${fkey}${(key in (type.maybe ?? {})) ? '?' : ''}: ${print(ftype, indent + '  ', count)}`
     }
     return output + `\n${indent}}`
   }
