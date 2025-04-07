@@ -1,14 +1,15 @@
 import readline from 'node:readline/promises'
 import { stdin } from 'node:process'
 import {
+  type Type,
   gettype,
-  sum,
+  fold,
   print
-} from './lib.mjs'
+} from './lib.ts'
 
 async function main () {
   const rl = readline.createInterface({ input: stdin })
-  let ltype = { __never: true }
+  let ltype: Type = { never: true, count: 1 }
 
   const discriminantPaths = []
   const literalPaths = []
@@ -29,15 +30,10 @@ async function main () {
     if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
     const rtype = gettype(json, '', literalPaths, discriminantPaths, recordPaths)
-
-    if (ltype.__never) {
-      ltype = rtype
-    } else {
-      ltype = sum(ltype, rtype)
-    }
+    ltype = fold(ltype, rtype)
   }
 
-  if (ltype.__never) return process.exit(1)
+  if (ltype.never) return process.exit(1)
   console.log(print(ltype))
 }
 
