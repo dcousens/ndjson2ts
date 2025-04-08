@@ -16,6 +16,7 @@ export type Type = {
 
 function foldleft (xs: Type[]) {
   do {
+    if (xs.length === 1) return xs[0]
     let loop = false
 
     for (const a of xs) {
