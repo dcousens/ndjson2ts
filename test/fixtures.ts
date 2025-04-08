@@ -9,7 +9,7 @@ export default [
     "actual": [
       []
     ],
-    "expected": "unknown[]"
+    "expected": "never[]"
   },
   {
     "actual": [
@@ -57,7 +57,7 @@ export default [
       { "a": { "b": true } },
       []
     ],
-    "expected": "unknown[] | { a: { b: boolean } }"
+    "expected": "never[] | { a: { b: boolean } }"
   },
   {
     "actual": [
@@ -78,7 +78,7 @@ export default [
       { "a": { "b": true }, "c": [1], "d": [] },
       { "e": "f" }
     ],
-    "expected": "{ a?: { b: boolean } c?: number[] d?: unknown[] e?: string }"
+    "expected": "{ a?: { b: boolean } c?: number[] d?: never[] e?: string }"
   },
   {
     "actual": [

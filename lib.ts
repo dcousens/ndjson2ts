@@ -14,26 +14,35 @@ export type Type = {
   count: number
 }
 
-function foldleft (xs: Type[]): Type {
-  for (const a of xs) {
-    for (const b of xs) {
-      if (a === b) continue
-      const ab = fold(a, b)
-      if (ab.sum) continue // couldnt fold
-      return foldleft([ab, ...xs.filter(x => x !== a && x !== b)])
+function foldleft (xs: Type[]) {
+  do {
+    let loop = false
+
+    for (const a of xs) {
+      for (const b of xs) {
+        if (a === b) continue
+        const ab = fold(a, b)
+        if (ab.sum) continue // couldnt fold
+        xs = [ab, ...xs.filter(x => x !== a && x !== b)]
+        loop = true
+        break
+      }
+      if (loop) break
     }
-  }
+
+    if (loop) continue
+    break
+  } while (true) // irrelevant
+
   return {
     sum: xs,
     count: 1
   }
 }
 
-export function fold (a: Type, b: Type): Type {
-  if (a.never) return b
-  if (b.never) return a
-  if (a.scalar === 'unknown') return { ...b, count: a.count + b.count }
-  if (b.scalar === 'unknown') return { ...a, count: a.count + b.count }
+export function fold (a: Type, b: Type) {
+  if (a.never) return { ...b, count: a.count + b.count }
+  if (b.never) return { ...a, count: a.count + b.count }
   if (a.scalar && b.scalar && a.scalar === b.scalar) {
     return {
       scalar: a.scalar,
@@ -103,7 +112,7 @@ export function fold (a: Type, b: Type): Type {
   }
 }
 
-const UNKNOWN = { scalar: 'unknown', count: 1 }
+const NEVER = { never: true, count: 1 } as const
 
 export function gettype (
   json: unknown,
@@ -111,20 +120,24 @@ export function gettype (
   literalPaths: string[] = [],
   discriminantPaths: string[] = [],
   recordPaths: string[] = []
-): Type {
+) {
   if (typeof json === 'object') {
     if (json === null) return { literal: { value: null }, count: 1 }
     if (Array.isArray(json)) {
-      if (json.length === 0) return { array: { ...UNKNOWN }, count: 1 }
-      const type = json.map(x => gettype(x, `${path}.[]`, literalPaths, discriminantPaths, recordPaths)).reduce((ac, x) => fold(ac, x))
-      return { array: type, count: 1 }
+      if (json.length === 0) return { array: { ...NEVER }, count: 1 }
+      return {
+        array: foldleft(
+          json.map(x => gettype(x, `${path}[]`, literalPaths, discriminantPaths, recordPaths))
+        ),
+        count: 1
+      }
     }
 
     if (recordPaths.includes(path)) {
-      let keyType = { ...UNKNOWN } satisfies Type
-      let valueType = { ...UNKNOWN } satisfies Type
+      let keyType: Type = { ...NEVER }
+      let valueType: Type = { ...NEVER }
       for (const key in json) {
-        keyType = fold(keyType, gettype(key, `${path}.[key]`, literalPaths, discriminantPaths, recordPaths))
+        keyType = fold(keyType, gettype(key, `${path}|keys`, literalPaths, discriminantPaths, recordPaths))
         valueType = fold(valueType, gettype(json[key], `${path}[]`, literalPaths, discriminantPaths, recordPaths))
       }
       return {
@@ -137,7 +150,7 @@ export function gettype (
     }
 
     const object = {} as Record<string, Type>
-    let discriminant
+    let discriminant: Type['literal'] | undefined
     for (const key in json) {
       const ft = gettype(json[key], `${path}.${key}`, literalPaths, discriminantPaths, recordPaths)
 
@@ -164,6 +177,7 @@ function comment (type: Type, count = false) {
 }
 
 export function print (type: Type, indent = '', count = false): string {
+  if (type.never) return `never${comment(type, count)}`
   if (type.literal) return `${JSON.stringify(type.literal.value)}${comment(type, count)}`
   if (type.scalar) return `${type.scalar}${comment(type, count)}`
   if (type.array) {
