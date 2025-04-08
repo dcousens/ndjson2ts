@@ -11,9 +11,9 @@ async function main () {
   const rl = readline.createInterface({ input: stdin })
   let ltype: Type = { never: true, count: 1 }
 
-  const discriminantPaths = []
-  const literalPaths = []
-  const recordPaths = []
+  const discriminantPaths: string[] = []
+  const literalPaths: string[] = []
+  const recordPaths: string[] = []
   let count = false
 
   const args = process.argv.slice(2)
