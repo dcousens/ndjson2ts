@@ -14,6 +14,7 @@ async function main () {
   const discriminantPaths: string[] = []
   const literalPaths: string[] = []
   const recordPaths: string[] = []
+  const omitPaths: string[] = []
   let count = false
 
   const args = process.argv.slice(2)
@@ -21,6 +22,7 @@ async function main () {
     const a = args.shift()
     if (a === '--discriminant') discriminantPaths.push(args.shift() ?? '')
     if (a === '--literal') literalPaths.push(args.shift() ?? '')
+    if (a === '--omit') omitPaths.push(args.shift() ?? '')
     if (a === '--record') recordPaths.push(args.shift() ?? '')
     if (a === '--count') count = true
   }
@@ -31,7 +33,7 @@ async function main () {
   for await (const line of rl) {
     if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
-    const rtype = gettype(json, '', literalPaths, discriminantPaths, recordPaths)
+    const rtype = gettype(json, '', literalPaths, discriminantPaths, recordPaths, omitPaths)
     ltype = fold(ltype, rtype)
   }
 

@@ -120,7 +120,8 @@ export function gettype (
   path = '',
   literalPaths: string[] = [],
   discriminantPaths: string[] = [],
-  recordPaths: string[] = []
+  recordPaths: string[] = [],
+  omitPaths: string[] = [],
 ) {
   if (typeof json === 'object') {
     if (json === null) return { literal: { value: null }, count: 1 }
@@ -128,7 +129,7 @@ export function gettype (
       if (json.length === 0) return { array: { ...NEVER }, count: 1 }
       return {
         array: foldleft(
-          json.map(x => gettype(x, `${path}[]`, literalPaths, discriminantPaths, recordPaths))
+          json.map(x => gettype(x, `${path}[]`, literalPaths, discriminantPaths, recordPaths, omitPaths))
         ),
         count: 1
       }
@@ -138,8 +139,10 @@ export function gettype (
       let keyType: Type = { ...NEVER }
       let valueType: Type = { ...NEVER }
       for (const key in json) {
-        keyType = fold(keyType, gettype(key, `${path}|keys`, literalPaths, discriminantPaths, recordPaths))
-        valueType = fold(valueType, gettype(json[key], `${path}[]`, literalPaths, discriminantPaths, recordPaths))
+        const innerPath = `${path}.${key}`
+        if (omitPaths.includes(innerPath)) continue
+        keyType = fold(keyType, gettype(key, `${path}|keys`, literalPaths, discriminantPaths, recordPaths, omitPaths))
+        valueType = fold(valueType, gettype(json[key], `${path}[]`, literalPaths, discriminantPaths, recordPaths, omitPaths))
       }
       return {
         record: {
@@ -153,8 +156,10 @@ export function gettype (
     const object = {} as Record<string, Type>
     let discriminant: Type['literal'] | undefined
     for (const key in json) {
-      const ft = gettype(json[key], `${path}.${key}`, literalPaths, discriminantPaths, recordPaths)
+      const innerPath = `${path}.${key}`
+      if (omitPaths.includes(innerPath)) continue
 
+      const ft = gettype(json[key], innerPath, literalPaths, discriminantPaths, recordPaths, omitPaths)
       object[key] = ft
       if (ft.literal && discriminantPaths.includes(`${path}.${key}`)) {
         discriminant = ft.literal
