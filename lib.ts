@@ -41,7 +41,35 @@ function foldleft (xs: Type[]) {
   }
 }
 
-export function fold (a: Type, b: Type) {
+function foldobject (
+  a: Exclude<Type["object"], undefined>,
+  b: Exclude<Type["object"], undefined>,
+  maybe: Record<string, true>,
+) {
+  const object = {}
+
+  for (const key in a) {
+    if (key in b) {
+      object[key] = fold(a[key], b[key])
+    } else {
+      object[key] = a[key]
+      maybe[key] = true
+    }
+  }
+
+  for (const key in b) {
+    if (key in a) {
+      // do nothing
+    } else {
+      object[key] = b[key]
+      maybe[key] = true
+    }
+  }
+
+  return { object, maybe }
+}
+
+export function fold (a: Type, b: Type): Type {
   if (a.never) return { ...b, count: a.count + b.count }
   if (b.never) return { ...a, count: a.count + b.count }
   if (a.scalar && b.scalar && a.scalar === b.scalar) {
@@ -65,31 +93,20 @@ export function fold (a: Type, b: Type) {
   }
 
   if (a.object && b.object) {
-    if (a.discriminant?.value === b.discriminant?.value) {
-      const type = {
-        object: {} as Record<string, Type>,
-        maybe: { ...a.maybe, ...b.maybe } as Record<string, true>,
+    if (a.discriminant && b.discriminant && a.discriminant.value === b.discriminant.value) {
+      return {
+        ...foldobject(a.object, b.object, { ...a.maybe, ...b.maybe }),
         discriminant: a.discriminant,
         count: a.count + b.count
-      } satisfies Type
+      }
+    }
 
-      for (const key in a.object) {
-        if (key in b.object) {
-          type.object[key] = fold(a.object[key], b.object[key])
-        } else {
-          type.object[key] = a.object[key]
-          type.maybe[key] = true
-        }
+    if (!a.discriminant && !b.discriminant) {
+      return {
+        ...foldobject(a.object, b.object, { ...a.maybe, ...b.maybe }),
+        discriminant: undefined,
+        count: a.count + b.count
       }
-      for (const key in b.object) {
-        if (key in a.object) {
-          // do nothing
-        } else {
-          type.object[key] = b.object[key]
-          type.maybe[key] = true
-        }
-      }
-      return type
     }
   }
 
@@ -141,6 +158,7 @@ export function gettype (
       for (const key in json) {
         const innerPath = `${path}.${key}`
         if (omitPaths.includes(innerPath)) continue
+
         keyType = fold(keyType, gettype(key, `${path}|keys`, literalPaths, discriminantPaths, recordPaths, omitPaths))
         valueType = fold(valueType, gettype(json[key], `${path}[]`, literalPaths, discriminantPaths, recordPaths, omitPaths))
       }
@@ -160,21 +178,23 @@ export function gettype (
       if (omitPaths.includes(innerPath)) continue
 
       const ft = gettype(json[key], innerPath, literalPaths, discriminantPaths, recordPaths, omitPaths)
-      object[key] = ft
-      if (ft.literal && discriminantPaths.includes(`${path}.${key}`)) {
+      if (ft.literal && discriminantPaths.includes(innerPath)) {
         discriminant = ft.literal
       }
+
+      object[key] = ft
     }
+
     return {
       object,
       maybe: {},
-      ...(discriminant ? { discriminant } : {}),
+      discriminant,
       count: 1
     }
   }
 
   if (literalPaths.includes(path)) return { literal: { value: json }, count: 1 }
-  return { scalar: typeof json, count: 1 } satisfies Type
+  return { scalar: typeof json, count: 1 }
 }
 
 function comment (type: Type, count = false) {
@@ -187,6 +207,7 @@ export function print (type: Type, indent = '', count = false): string {
   if (type.literal) return `${JSON.stringify(type.literal.value)}${comment(type, count)}`
   if (type.scalar) return `${type.scalar}${comment(type, count)}`
   if (type.array) {
+    if (type.array.never) return `[]${comment(type, count)}`
     if (type.array.sum) return `(${print(type.array, indent, count)})[]`
     return `${print(type.array, indent, count)}[]`
   }

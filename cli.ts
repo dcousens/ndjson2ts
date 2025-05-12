@@ -9,7 +9,6 @@ import {
 
 async function main () {
   const rl = readline.createInterface({ input: stdin })
-  let ltype: Type = { never: true, count: 1 }
 
   const discriminantPaths: string[] = []
   const literalPaths: string[] = []
@@ -30,6 +29,7 @@ async function main () {
   // any discriminants are literals too
   literalPaths.push(...discriminantPaths)
 
+  let ltype: Type = { never: true, count: 1 }
   for await (const line of rl) {
     if (!line) continue // ignore empty lines
     const json = JSON.parse(line)
